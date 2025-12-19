@@ -1,0 +1,60 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Validate file types for resumes
+    function isValidResumeType() {
+      return request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('application/msword') ||
+             request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    }
+    
+    // Validate file size (max 5MB)
+    function isValidSize() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // User resume uploads
+    match /resumes/{userId}/{fileName} {
+      // Users can read their own resumes
+      // Recruiters can read any resume (for reviewing applications)
+      allow read: if isAuthenticated();
+      
+      // Users can only upload to their own folder
+      allow write: if isAuthenticated() && 
+        isOwner(userId) && 
+        isValidResumeType() && 
+        isValidSize();
+      
+      // Users can delete their own resumes
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+
+    // Application-specific resume uploads
+    match /applications/{applicationId}/{fileName} {
+      // Authenticated users can read (candidate who applied + recruiter)
+      allow read: if isAuthenticated();
+      
+      // Authenticated users can upload resumes with applications
+      allow write: if isAuthenticated() && 
+        isValidResumeType() && 
+        isValidSize();
+    }
+
+    // Company logos (future feature)
+    match /logos/{companyId}/{fileName} {
+      allow read: if true; // Public read for company logos
+      allow write: if isAuthenticated() && 
+        request.resource.contentType.matches('image/.*') &&
+        request.resource.size < 2 * 1024 * 1024;
+    }
+  }
+}

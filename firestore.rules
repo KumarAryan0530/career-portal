@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isRecruiter() {
+      return isAuthenticated() && getUserData().role == 'recruiter';
+    }
+    
+    function isCandidate() {
+      return isAuthenticated() && getUserData().role == 'candidate';
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own profile
+      // Recruiters can read candidate profiles (for applicant info)
+      allow read: if isAuthenticated() && 
+        (isOwner(userId) || isRecruiter());
+      
+      // Users can only create/update their own profile
+      allow create, update: if isOwner(userId);
+      
+      // Users cannot delete their profile (admin only)
+      allow delete: if false;
+    }
+
+    // Jobs collection
+    match /jobs/{jobId} {
+      // Anyone authenticated can read jobs
+      allow read: if isAuthenticated();
+      
+      // Only recruiters can create jobs
+      allow create: if isRecruiter() && 
+        request.resource.data.recruiterId == request.auth.uid;
+      
+      // Only the recruiter who created the job can update/delete it
+      allow update, delete: if isRecruiter() && 
+        resource.data.recruiterId == request.auth.uid;
+    }
+
+    // Applications collection
+    match /applications/{applicationId} {
+      // Candidates can read their own applications
+      // Recruiters can read applications for their jobs
+      allow read: if isAuthenticated() && (
+        resource.data.candidateId == request.auth.uid ||
+        resource.data.recruiterId == request.auth.uid
+      );
+      
+      // Only candidates can create applications
+      allow create: if isCandidate() && 
+        request.resource.data.candidateId == request.auth.uid;
+      
+      // Candidates can update their own applications (withdraw)
+      // Recruiters can update applications for their jobs (status change)
+      allow update: if isAuthenticated() && (
+        resource.data.candidateId == request.auth.uid ||
+        resource.data.recruiterId == request.auth.uid
+      );
+      
+      // Only candidates can delete their own applications
+      allow delete: if isCandidate() && 
+        resource.data.candidateId == request.auth.uid;
+    }
+  }
+}

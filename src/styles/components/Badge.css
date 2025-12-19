@@ -1,0 +1,210 @@
+/* Badge & Tag Styles */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: 50px;
+  white-space: nowrap;
+}
+
+/* Badge Variants */
+.badge-primary {
+  background: rgba(196, 30, 58, 0.1);
+  color: var(--primary-red);
+  border: 1px solid rgba(196, 30, 58, 0.2);
+}
+
+.badge-success {
+  background: var(--success-light);
+  color: var(--success);
+  border: 1px solid rgba(46, 125, 50, 0.2);
+}
+
+.badge-warning {
+  background: var(--warning-light);
+  color: var(--warning);
+  border: 1px solid rgba(237, 108, 2, 0.2);
+}
+
+.badge-error {
+  background: var(--error-light);
+  color: var(--error);
+  border: 1px solid rgba(211, 47, 47, 0.2);
+}
+
+.badge-info {
+  background: var(--info-light);
+  color: var(--info);
+  border: 1px solid rgba(2, 136, 209, 0.2);
+}
+
+.badge-neutral {
+  background: var(--light-gray);
+  color: var(--text-dark);
+  border: 1px solid var(--medium-gray);
+}
+
+/* Skill Tag */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: var(--cream);
+  color: var(--text-dark);
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all var(--transition-fast);
+}
+
+.tag:hover {
+  background: var(--light-gray);
+  border-color: var(--dark-gray);
+}
+
+.tag-primary {
+  background: var(--primary-red);
+  color: var(--white);
+  border-color: var(--primary-red-dark);
+}
+
+.tag-removable {
+  padding-right: 0.5rem;
+}
+
+.tag-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 0.5rem;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tag-remove:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Status Badges */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: var(--radius-sm);
+}
+
+.status-pending {
+  background: var(--warning-light);
+  color: #B45309;
+}
+
+.status-reviewing {
+  background: var(--info-light);
+  color: #0369A1;
+}
+
+.status-interview {
+  background: rgba(124, 58, 237, 0.1);
+  color: #6D28D9;
+}
+
+.status-offered {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.status-hired {
+  background: var(--success);
+  color: var(--white);
+}
+
+.status-rejected {
+  background: var(--error-light);
+  color: var(--error);
+}
+
+.status-active {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.status-closed {
+  background: var(--light-gray);
+  color: var(--text-light);
+}
+
+/* Status Dot */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.status-dot-success {
+  background: var(--success);
+}
+
+.status-dot-warning {
+  background: var(--warning);
+}
+
+.status-dot-error {
+  background: var(--error);
+}
+
+.status-dot-info {
+  background: var(--info);
+}
+
+/* Job Type Tags */
+.job-type {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: var(--radius-sm);
+}
+
+.job-type-fulltime {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.job-type-parttime {
+  background: var(--info-light);
+  color: var(--info);
+}
+
+.job-type-contract {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.job-type-remote {
+  background: rgba(124, 58, 237, 0.1);
+  color: #6D28D9;
+}
+
+.job-type-internship {
+  background: rgba(236, 72, 153, 0.1);
+  color: #BE185D;
+}
