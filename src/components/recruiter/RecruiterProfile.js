@@ -1,7 +1,7 @@
 // Recruiter Profile - Company and settings
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button, Card, Input, Textarea, Spinner } from '../shared';
+import { Button, Input, Textarea, Spinner } from '../shared';
 import toast from 'react-hot-toast';
 
 const styles = {

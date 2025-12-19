@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useResumeUpload } from '../../hooks/useResumeUpload';
-import { Button, Input, Textarea, FileUpload, Tag, Spinner } from '../shared';
+import { Button, Input, Textarea, FileUpload, Tag } from '../shared';
 import toast from 'react-hot-toast';
 
 const profileStyles = {

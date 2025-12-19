@@ -1,8 +1,8 @@
 // Job Management for Recruiters - Create, Edit, Delete Jobs
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useJobs } from '../../hooks/useJobs';
-import { Button, Card, Input, Select, Badge, Status, Spinner, Modal, EmptyState } from '../shared';
+import { Button, Input, Select, Badge, Status, Spinner, Modal, EmptyState } from '../shared';
 import { format } from 'date-fns';
 
 const styles = {
@@ -134,7 +134,6 @@ const styles = {
 };
 
 const JobManagement = () => {
-  const navigate = useNavigate();
   const { jobs, fetchRecruiterJobs, deleteJob, updateJob, loading } = useJobs();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');

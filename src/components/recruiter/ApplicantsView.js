@@ -1,9 +1,9 @@
 // Applicants View - View and manage job applicants
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useApplications } from '../../hooks/useApplications';
 import { useJobs } from '../../hooks/useJobs';
-import { Button, Card, Input, Select, Status, Spinner, Modal, EmptyState, Badge } from '../shared';
+import { Button, Input, Select, Status, Spinner, Modal, EmptyState, Badge } from '../shared';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useJobs } from '../../hooks/useJobs';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button, Card, Input, Select, Textarea, Spinner, Badge } from '../shared';
+import { Button, Input, Select, Textarea, Spinner } from '../shared';
 import toast from 'react-hot-toast';
 
 const styles = {
@@ -161,7 +161,7 @@ const JobForm = () => {
   const { id } = useParams();
   const isEditing = !!id;
   const { currentUser, userProfile } = useAuth();
-  const { createJob, updateJob, fetchJobById, loading } = useJobs();
+  const { createJob, updateJob, fetchJobById } = useJobs();
   
   const [formData, setFormData] = useState(initialFormState);
   const [skillInput, setSkillInput] = useState('');

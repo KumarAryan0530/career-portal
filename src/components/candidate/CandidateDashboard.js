@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useApplications } from '../../hooks/useApplications';
 import { useJobs } from '../../hooks/useJobs';
-import { Card, Button, Status, Spinner } from '../shared';
+import { Button, Status, Spinner } from '../shared';
 import { format } from 'date-fns';
 
 const dashboardStyles = {

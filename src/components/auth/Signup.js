@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button, Input, Select } from '../shared';
+import { Button, Input } from '../shared';
 import toast from 'react-hot-toast';
 
 const signupStyles = {
