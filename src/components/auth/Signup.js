@@ -1,9 +1,23 @@
 // Signup Page
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button, Input } from '../shared';
 import toast from 'react-hot-toast';
+
+// Media query hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  return isMobile;
+};
 
 const signupStyles = {
   container: {
@@ -197,6 +211,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState('candidate');
+  const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -283,52 +298,67 @@ const Signup = () => {
   };
 
   return (
-    <div style={signupStyles.container}>
-      <div style={signupStyles.leftPanel}>
-        <div style={{ ...signupStyles.decorCircle, width: '400px', height: '400px', top: '-100px', left: '-100px' }} />
-        <div style={{ ...signupStyles.decorCircle, width: '300px', height: '300px', bottom: '-50px', right: '-50px' }} />
-        
-        <div style={signupStyles.heroContent}>
-          <h2 style={signupStyles.heroTitle}>Start Your Journey</h2>
-          <p style={signupStyles.heroText}>
-            Join thousands of professionals who have found their perfect match through CareerHub.
-          </p>
+    <div style={{
+      ...signupStyles.container,
+      flexDirection: isMobile ? 'column' : 'row'
+    }}>
+      {/* Hide left panel on mobile */}
+      {!isMobile && (
+        <div style={signupStyles.leftPanel}>
+          <div style={{ ...signupStyles.decorCircle, width: '400px', height: '400px', top: '-100px', left: '-100px' }} />
+          <div style={{ ...signupStyles.decorCircle, width: '300px', height: '300px', bottom: '-50px', right: '-50px' }} />
           
-          <div style={signupStyles.features}>
-            <div style={signupStyles.feature}>
-              <div style={signupStyles.featureIcon}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
+          <div style={signupStyles.heroContent}>
+            <h2 style={signupStyles.heroTitle}>Start Your Journey</h2>
+            <p style={signupStyles.heroText}>
+              Join thousands of professionals who have found their perfect match through CareerHub.
+            </p>
+            
+            <div style={signupStyles.features}>
+              <div style={signupStyles.feature}>
+                <div style={signupStyles.featureIcon}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                </div>
+                <span>Access to thousands of job opportunities</span>
               </div>
-              <span>Access to thousands of job opportunities</span>
-            </div>
-            <div style={signupStyles.feature}>
-              <div style={signupStyles.featureIcon}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
+              <div style={signupStyles.feature}>
+                <div style={signupStyles.featureIcon}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                </div>
+                <span>Secure cloud storage for your documents</span>
               </div>
-              <span>Secure cloud storage for your documents</span>
-            </div>
-            <div style={signupStyles.feature}>
-              <div style={signupStyles.featureIcon}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
+              <div style={signupStyles.feature}>
+                <div style={signupStyles.featureIcon}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+                <span>Connect with top employers directly</span>
               </div>
-              <span>Connect with top employers directly</span>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div style={signupStyles.rightPanel}>
-        <div style={signupStyles.formCard}>
+      <div style={{
+        ...signupStyles.rightPanel,
+        padding: isMobile ? '1.5rem' : '2rem',
+        flex: isMobile ? 'none' : 1
+      }}>
+        <div style={{
+          ...signupStyles.formCard,
+          padding: isMobile ? '1.5rem' : '2.5rem',
+          maxWidth: isMobile ? '100%' : '500px',
+          boxShadow: isMobile ? '0 10px 40px rgba(0,0,0,0.08)' : '0 20px 60px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.02)'
+        }}>
           <div style={signupStyles.logo}>
             <div style={signupStyles.logoIcon}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -338,41 +368,49 @@ const Signup = () => {
             <span style={signupStyles.logoText}>CareerHub</span>
           </div>
 
-          <h1 style={signupStyles.title}>Create Account</h1>
+          <h1 style={{
+            ...signupStyles.title,
+            fontSize: isMobile ? '1.35rem' : '1.5rem'
+          }}>Create Account</h1>
           <p style={signupStyles.subtitle}>Choose your account type to get started</p>
 
-          <div style={signupStyles.roleSelector}>
+          <div style={{
+            ...signupStyles.roleSelector,
+            gap: isMobile ? '0.75rem' : '1rem'
+          }}>
             <div
               style={{
                 ...signupStyles.roleOption,
+                padding: isMobile ? '1rem' : '1.25rem 1rem',
                 ...(role === 'candidate' ? signupStyles.roleOptionActive : {})
               }}
               onClick={() => setRole('candidate')}
             >
-              <div style={{ ...signupStyles.roleIcon, background: role === 'candidate' ? '#C41E3A' : '#E0DADA' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={role === 'candidate' ? '#fff' : '#666'} strokeWidth="2">
+              <div style={{ ...signupStyles.roleIcon, background: role === 'candidate' ? '#C41E3A' : '#E0DADA', width: isMobile ? '36px' : '40px', height: isMobile ? '36px' : '40px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={role === 'candidate' ? '#fff' : '#666'} strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
               </div>
               <div style={signupStyles.roleLabel}>Candidate</div>
-              <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>Looking for jobs</div>
+              <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem', display: isMobile ? 'none' : 'block' }}>Looking for jobs</div>
             </div>
             
             <div
               style={{
                 ...signupStyles.roleOption,
+                padding: isMobile ? '1rem' : '1.25rem 1rem',
                 ...(role === 'recruiter' ? signupStyles.roleOptionActive : {})
               }}
               onClick={() => setRole('recruiter')}
             >
-              <div style={{ ...signupStyles.roleIcon, background: role === 'recruiter' ? '#C41E3A' : '#E0DADA' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={role === 'recruiter' ? '#fff' : '#666'} strokeWidth="2">
+              <div style={{ ...signupStyles.roleIcon, background: role === 'recruiter' ? '#C41E3A' : '#E0DADA', width: isMobile ? '36px' : '40px', height: isMobile ? '36px' : '40px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={role === 'recruiter' ? '#fff' : '#666'} strokeWidth="2">
                   <path d="M20 7h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM10 4h4v3h-4V4z"/>
                 </svg>
               </div>
               <div style={signupStyles.roleLabel}>Recruiter</div>
-              <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>Hiring talent</div>
+              <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem', display: isMobile ? 'none' : 'block' }}>Hiring talent</div>
             </div>
           </div>
 
@@ -418,7 +456,10 @@ const Signup = () => {
               placeholder="+1 (555) 000-0000"
             />
 
-            <div style={signupStyles.formRow}>
+            <div style={{
+              ...signupStyles.formRow,
+              flexDirection: isMobile ? 'column' : 'row'
+            }}>
               <Input
                 label="Password"
                 type="password"

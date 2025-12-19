@@ -1,9 +1,23 @@
 // Login Page
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button, Input } from '../shared';
 import toast from 'react-hot-toast';
+
+// Media query hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  return isMobile;
+};
 
 const loginStyles = {
   container: {
@@ -141,6 +155,7 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -193,9 +208,22 @@ const Login = () => {
   };
 
   return (
-    <div style={loginStyles.container}>
-      <div style={loginStyles.leftPanel}>
-        <div style={loginStyles.formCard}>
+    <div style={{
+      ...loginStyles.container,
+      flexDirection: isMobile ? 'column' : 'row'
+    }}>
+      <div style={{
+        ...loginStyles.leftPanel,
+        padding: isMobile ? '1.5rem' : '2rem',
+        minHeight: isMobile ? 'auto' : undefined,
+        flex: isMobile ? 'none' : 1
+      }}>
+        <div style={{
+          ...loginStyles.formCard,
+          padding: isMobile ? '1.5rem' : '3rem',
+          maxWidth: isMobile ? '100%' : '450px',
+          boxShadow: isMobile ? '0 10px 40px rgba(0,0,0,0.08)' : '0 20px 60px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.02)'
+        }}>
           <div style={loginStyles.logo}>
             <div style={loginStyles.logoIcon}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -205,7 +233,10 @@ const Login = () => {
             <span style={loginStyles.logoText}>CareerHub</span>
           </div>
 
-          <h1 style={loginStyles.title}>Welcome Back</h1>
+          <h1 style={{
+            ...loginStyles.title,
+            fontSize: isMobile ? '1.35rem' : '1.5rem'
+          }}>Welcome Back</h1>
           <p style={loginStyles.subtitle}>Sign in to your account to continue</p>
 
           <form style={loginStyles.form} onSubmit={handleSubmit}>
@@ -261,18 +292,21 @@ const Login = () => {
         </div>
       </div>
 
-      <div style={loginStyles.rightPanel}>
-        <div style={{ ...loginStyles.decorCircle, width: '400px', height: '400px', top: '-100px', right: '-100px' }} />
-        <div style={{ ...loginStyles.decorCircle, width: '300px', height: '300px', bottom: '-50px', left: '-50px' }} />
-        
-        <div style={loginStyles.heroContent}>
-          <h2 style={loginStyles.heroTitle}>Find Your Dream Career</h2>
-          <p style={loginStyles.heroText}>
-            Connect with top employers and discover opportunities that match your skills and ambitions. 
-            Your next career move starts here.
-          </p>
+      {/* Hide right panel on mobile */}
+      {!isMobile && (
+        <div style={loginStyles.rightPanel}>
+          <div style={{ ...loginStyles.decorCircle, width: '400px', height: '400px', top: '-100px', right: '-100px' }} />
+          <div style={{ ...loginStyles.decorCircle, width: '300px', height: '300px', bottom: '-50px', left: '-50px' }} />
+          
+          <div style={loginStyles.heroContent}>
+            <h2 style={loginStyles.heroTitle}>Find Your Dream Career</h2>
+            <p style={loginStyles.heroText}>
+              Connect with top employers and discover opportunities that match your skills and ambitions. 
+              Your next career move starts here.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

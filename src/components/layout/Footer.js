@@ -1,6 +1,20 @@
 // Footer Component
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+
+// Media query hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  return isMobile;
+};
 
 const footerStyles = {
   footer: {
@@ -98,13 +112,28 @@ const footerStyles = {
 
 const Footer = () => {
   const year = new Date().getFullYear();
+  const isMobile = useIsMobile();
 
   return (
     <footer style={footerStyles.footer}>
-      <div style={footerStyles.container}>
-        <div style={footerStyles.grid}>
-          <div style={footerStyles.column}>
-            <div style={footerStyles.logo}>
+      <div style={{
+        ...footerStyles.container,
+        padding: isMobile ? '2rem 1rem 1rem' : '3rem 1.5rem 1.5rem'
+      }}>
+        <div style={{
+          ...footerStyles.grid,
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: isMobile ? '1.5rem' : '2rem',
+          marginBottom: isMobile ? '1.5rem' : '2rem'
+        }}>
+          <div style={{
+            ...footerStyles.column,
+            textAlign: isMobile ? 'center' : 'left'
+          }}>
+            <div style={{
+              ...footerStyles.logo,
+              justifyContent: isMobile ? 'center' : 'flex-start'
+            }}>
               <div style={footerStyles.logoIcon}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
                   <path d="M20 7h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM10 4h4v3h-4V4z"/>
@@ -117,36 +146,44 @@ const Footer = () => {
             </p>
           </div>
 
-          <div style={footerStyles.column}>
-            <h4 style={footerStyles.heading}>For Candidates</h4>
-            <ul style={footerStyles.links}>
-              <li><Link to="/candidate/jobs" style={footerStyles.link}>Browse Jobs</Link></li>
-              <li><Link to="/signup" style={footerStyles.link}>Create Account</Link></li>
-              <li><Link to="/candidate/applications" style={footerStyles.link}>Track Applications</Link></li>
-            </ul>
-          </div>
+          {!isMobile && (
+            <>
+              <div style={footerStyles.column}>
+                <h4 style={footerStyles.heading}>For Candidates</h4>
+                <ul style={footerStyles.links}>
+                  <li><Link to="/candidate/jobs" style={footerStyles.link}>Browse Jobs</Link></li>
+                  <li><Link to="/signup" style={footerStyles.link}>Create Account</Link></li>
+                  <li><Link to="/candidate/applications" style={footerStyles.link}>Track Applications</Link></li>
+                </ul>
+              </div>
 
-          <div style={footerStyles.column}>
-            <h4 style={footerStyles.heading}>For Recruiters</h4>
-            <ul style={footerStyles.links}>
-              <li><Link to="/recruiter/jobs" style={footerStyles.link}>Post a Job</Link></li>
-              <li><Link to="/signup" style={footerStyles.link}>Employer Account</Link></li>
-              <li><Link to="/recruiter/applicants" style={footerStyles.link}>View Applicants</Link></li>
-            </ul>
-          </div>
+              <div style={footerStyles.column}>
+                <h4 style={footerStyles.heading}>For Recruiters</h4>
+                <ul style={footerStyles.links}>
+                  <li><Link to="/recruiter/jobs" style={footerStyles.link}>Post a Job</Link></li>
+                  <li><Link to="/signup" style={footerStyles.link}>Employer Account</Link></li>
+                  <li><Link to="/recruiter/applicants" style={footerStyles.link}>View Applicants</Link></li>
+                </ul>
+              </div>
 
-          <div style={footerStyles.column}>
-            <h4 style={footerStyles.heading}>Company</h4>
-            <ul style={footerStyles.links}>
-              <li><a href="#about" style={footerStyles.link}>About Us</a></li>
-              <li><a href="#contact" style={footerStyles.link}>Contact</a></li>
-              <li><a href="#privacy" style={footerStyles.link}>Privacy Policy</a></li>
-              <li><a href="#terms" style={footerStyles.link}>Terms of Service</a></li>
-            </ul>
-          </div>
+              <div style={footerStyles.column}>
+                <h4 style={footerStyles.heading}>Company</h4>
+                <ul style={footerStyles.links}>
+                  <li><a href="#about" style={footerStyles.link}>About Us</a></li>
+                  <li><a href="#contact" style={footerStyles.link}>Contact</a></li>
+                  <li><a href="#privacy" style={footerStyles.link}>Privacy Policy</a></li>
+                  <li><a href="#terms" style={footerStyles.link}>Terms of Service</a></li>
+                </ul>
+              </div>
+            </>
+          )}
         </div>
 
-        <div style={footerStyles.bottom}>
+        <div style={{
+          ...footerStyles.bottom,
+          flexDirection: isMobile ? 'column' : 'row',
+          textAlign: isMobile ? 'center' : 'left'
+        }}>
           <p style={footerStyles.copyright}>
             © {year} CareerHub. All rights reserved.
           </p>

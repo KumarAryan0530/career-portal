@@ -7,6 +7,20 @@ import { useJobs } from '../../hooks/useJobs';
 import { Button, Status, Spinner } from '../shared';
 import { format } from 'date-fns';
 
+// Media query hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  return isMobile;
+};
+
 const dashboardStyles = {
   header: {
     marginBottom: '2rem'
@@ -211,11 +225,18 @@ const CandidateDashboard = () => {
   const recentJobs = jobs.slice(0, 5);
   const recentApplications = applications.slice(0, 5);
   const profileCompletion = calculateProfileCompletion();
+  const isMobile = useIsMobile();
 
   return (
     <div>
-      <div style={dashboardStyles.header}>
-        <h1 style={dashboardStyles.greeting}>
+      <div style={{
+        ...dashboardStyles.header,
+        marginBottom: isMobile ? '1.5rem' : '2rem'
+      }}>
+        <h1 style={{
+          ...dashboardStyles.greeting,
+          fontSize: isMobile ? '1.5rem' : '1.75rem'
+        }}>
           Welcome back, {userProfile?.fullName?.split(' ')[0] || 'User'}!
         </h1>
         <p style={dashboardStyles.subtext}>
@@ -224,34 +245,44 @@ const CandidateDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div style={dashboardStyles.statsGrid}>
+      <div style={{
+        ...dashboardStyles.statsGrid,
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: isMobile ? '1rem' : '1.5rem'
+      }}>
         <div style={dashboardStyles.statCard}>
           <div style={{ ...dashboardStyles.statCardBorder, background: 'linear-gradient(135deg, #C41E3A 0%, #A01830 100%)' }} />
-          <div style={{ ...dashboardStyles.statIcon, background: '#FFF5F5', color: '#C41E3A' }}>
+          <div style={{ ...dashboardStyles.statIcon, background: '#FFF5F5', color: '#C41E3A', width: isMobile ? '40px' : '48px', height: isMobile ? '40px' : '48px' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
               <polyline points="14 2 14 8 20 8"></polyline>
             </svg>
           </div>
-          <div style={dashboardStyles.statValue}>{stats.totalApplications}</div>
+          <div style={{
+            ...dashboardStyles.statValue,
+            fontSize: isMobile ? '1.75rem' : '2rem'
+          }}>{stats.totalApplications}</div>
           <div style={dashboardStyles.statLabel}>Total Applications</div>
         </div>
 
         <div style={dashboardStyles.statCard}>
           <div style={{ ...dashboardStyles.statCardBorder, background: '#ED6C02' }} />
-          <div style={{ ...dashboardStyles.statIcon, background: '#FFF4E5', color: '#ED6C02' }}>
+          <div style={{ ...dashboardStyles.statIcon, background: '#FFF4E5', color: '#ED6C02', width: isMobile ? '40px' : '48px', height: isMobile ? '40px' : '48px' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
           </div>
-          <div style={dashboardStyles.statValue}>{stats.pending}</div>
+          <div style={{
+            ...dashboardStyles.statValue,
+            fontSize: isMobile ? '1.75rem' : '2rem'
+          }}>{stats.pending}</div>
           <div style={dashboardStyles.statLabel}>Pending Review</div>
         </div>
 
         <div style={dashboardStyles.statCard}>
           <div style={{ ...dashboardStyles.statCardBorder, background: '#0288D1' }} />
-          <div style={{ ...dashboardStyles.statIcon, background: '#E1F5FE', color: '#0288D1' }}>
+          <div style={{ ...dashboardStyles.statIcon, background: '#E1F5FE', color: '#0288D1', width: isMobile ? '40px' : '48px', height: isMobile ? '40px' : '48px' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
               <circle cx="9" cy="7" r="4"></circle>
@@ -259,30 +290,47 @@ const CandidateDashboard = () => {
               <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
           </div>
-          <div style={dashboardStyles.statValue}>{stats.interviews}</div>
+          <div style={{
+            ...dashboardStyles.statValue,
+            fontSize: isMobile ? '1.75rem' : '2rem'
+          }}>{stats.interviews}</div>
           <div style={dashboardStyles.statLabel}>Interviews</div>
         </div>
 
         <div style={dashboardStyles.statCard}>
           <div style={{ ...dashboardStyles.statCardBorder, background: '#2E7D32' }} />
-          <div style={{ ...dashboardStyles.statIcon, background: '#E8F5E9', color: '#2E7D32' }}>
+          <div style={{ ...dashboardStyles.statIcon, background: '#E8F5E9', color: '#2E7D32', width: isMobile ? '40px' : '48px', height: isMobile ? '40px' : '48px' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
           </div>
-          <div style={dashboardStyles.statValue}>{stats.offers}</div>
+          <div style={{
+            ...dashboardStyles.statValue,
+            fontSize: isMobile ? '1.75rem' : '2rem'
+          }}>{stats.offers}</div>
           <div style={dashboardStyles.statLabel}>Offers Received</div>
         </div>
       </div>
 
       {/* Main Content Grid */}
-      <div style={dashboardStyles.grid}>
+      <div style={{
+        ...dashboardStyles.grid,
+        gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr',
+        gap: isMobile ? '1.5rem' : '2rem'
+      }}>
         <div>
           {/* Recent Applications */}
           <div style={dashboardStyles.section}>
-            <div style={dashboardStyles.sectionHeader}>
-              <h2 style={dashboardStyles.sectionTitle}>Recent Applications</h2>
+            <div style={{
+              ...dashboardStyles.sectionHeader,
+              justifyContent: isMobile ? 'space-between' : undefined,
+              marginBottom: isMobile ? '1rem' : undefined
+            }}>
+              <h2 style={{
+                ...dashboardStyles.sectionTitle,
+                fontSize: isMobile ? '1.1rem' : '1.25rem'
+              }}>Recent Applications</h2>
               <Link to="/candidate/applications">
                 <Button variant="ghost" size="sm">View All</Button>
               </Link>
@@ -307,8 +355,15 @@ const CandidateDashboard = () => {
               </div>
             ) : (
               recentApplications.map(app => (
-                <div key={app.id} style={dashboardStyles.applicationCard}>
-                  <div style={dashboardStyles.applicationHeader}>
+                <div key={app.id} style={{
+                  ...dashboardStyles.applicationCard,
+                  padding: isMobile ? '1rem' : '1.25rem'
+                }}>
+                  <div style={{
+                    ...dashboardStyles.applicationHeader,
+                    flexDirection: isMobile ? 'column' : 'row',
+                    gap: isMobile ? '0.75rem' : undefined
+                  }}>
                     <div>
                       <div style={dashboardStyles.applicationTitle}>{app.jobTitle}</div>
                       <div style={dashboardStyles.applicationCompany}>{app.company}</div>
@@ -326,7 +381,10 @@ const CandidateDashboard = () => {
           {/* Recommended Jobs */}
           <div style={dashboardStyles.section}>
             <div style={dashboardStyles.sectionHeader}>
-              <h2 style={dashboardStyles.sectionTitle}>Recommended Jobs</h2>
+              <h2 style={{
+                ...dashboardStyles.sectionTitle,
+                fontSize: isMobile ? '1.1rem' : '1.25rem'
+              }}>Recommended Jobs</h2>
               <Link to="/candidate/jobs">
                 <Button variant="ghost" size="sm">View All</Button>
               </Link>
@@ -349,18 +407,21 @@ const CandidateDashboard = () => {
             ) : (
               recentJobs.map(job => (
                 <Link to={`/candidate/jobs/${job.id}`} key={job.id} style={{ textDecoration: 'none' }}>
-                  <div style={dashboardStyles.jobCard}>
+                  <div style={{
+                    ...dashboardStyles.jobCard,
+                    padding: isMobile ? '1rem' : '1.25rem'
+                  }}>
                     <div style={{ fontWeight: '600', color: '#2D2D2D', marginBottom: '0.25rem' }}>
                       {job.title}
                     </div>
                     <div style={{ color: '#C41E3A', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
                       {job.company}
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', color: '#666', fontSize: '0.85rem' }}>
+                    <div style={{ display: isMobile ? 'block' : 'flex', gap: isMobile ? 0 : '1rem', color: '#666', fontSize: '0.85rem', lineHeight: isMobile ? '1.5' : 'normal' }}>
                       <span>{job.location}</span>
-                      <span>•</span>
+                      {!isMobile && <span>•</span>}
                       <span>{job.type}</span>
-                      <span>•</span>
+                      {!isMobile && <span>•</span>}
                       <span>{job.salary}</span>
                     </div>
                   </div>
@@ -373,11 +434,22 @@ const CandidateDashboard = () => {
         {/* Sidebar */}
         <div>
           {/* Profile Card */}
-          <div style={dashboardStyles.profileCard}>
-            <div style={dashboardStyles.avatar}>
+          <div style={{
+            ...dashboardStyles.profileCard,
+            padding: isMobile ? '1.25rem' : '1.5rem'
+          }}>
+            <div style={{
+              ...dashboardStyles.avatar,
+              width: isMobile ? '70px' : '80px',
+              height: isMobile ? '70px' : '80px',
+              fontSize: isMobile ? '1.75rem' : '2rem'
+            }}>
               {getInitials(userProfile?.fullName)}
             </div>
-            <div style={dashboardStyles.profileName}>
+            <div style={{
+              ...dashboardStyles.profileName,
+              fontSize: isMobile ? '1.1rem' : '1.25rem'
+            }}>
               {userProfile?.fullName || 'User'}
             </div>
             <div style={dashboardStyles.profileEmail}>
@@ -401,7 +473,11 @@ const CandidateDashboard = () => {
           </div>
 
           {/* Quick Actions */}
-          <div style={{ ...dashboardStyles.profileCard, marginTop: '1.5rem' }}>
+          <div style={{ 
+            ...dashboardStyles.profileCard, 
+            marginTop: '1.5rem',
+            padding: isMobile ? '1.25rem' : '1.5rem'
+          }}>
             <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', textAlign: 'left' }}>
               Quick Actions
             </h3>
