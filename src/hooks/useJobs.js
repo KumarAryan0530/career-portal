@@ -212,7 +212,7 @@ export const useJobs = () => {
   };
 
   // Get single job by ID
-  const getJob = async (jobId) => {
+  const getJob = useCallback(async (jobId) => {
     try {
       console.log('🔍 Fetching job with ID:', jobId);
       const { data, error: fetchError } = await supabase
@@ -235,7 +235,7 @@ export const useJobs = () => {
       console.error('❌ Error in getJob:', err.message || err);
       throw err;
     }
-  };
+  }, []);
 
   // Real-time listener for jobs
   useEffect(() => {
