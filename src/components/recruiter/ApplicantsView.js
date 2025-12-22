@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApplications } from '../../hooks/useApplications';
-import { useJobs } from '../../hooks/useJobs';
 import { useResumeScoring } from '../../hooks/useResumeScoring';
 import { Button, Input, Select, Status, Spinner, Modal, EmptyState, Badge, ScoreDisplay, ScoreDetailedView, ScoreInsights } from '../shared';
 import { format } from 'date-fns';
