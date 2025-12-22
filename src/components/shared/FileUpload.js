@@ -1,5 +1,6 @@
 // File Upload Component with Progress
 import React, { useRef, useState } from 'react';
+import Button from './Button';
 import Spinner from './Spinner';
 import '../../styles/components/Form.css';
 

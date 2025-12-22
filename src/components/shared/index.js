@@ -9,3 +9,5 @@ export { default as Spinner, LoadingOverlay, LoadingCard } from './Spinner';
 export { default as Modal } from './Modal';
 export { default as FileUpload } from './FileUpload';
 export { default as EmptyState } from './EmptyState';
+export { ScoreDisplay, ScoreDetailedView } from './ScoreDisplay';
+export { default as ScoreInsights } from './ScoreInsights';

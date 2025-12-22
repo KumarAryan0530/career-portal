@@ -161,7 +161,7 @@ const JobForm = () => {
   const { id } = useParams();
   const isEditing = !!id;
   const { currentUser, userProfile } = useAuth();
-  const { createJob, updateJob, fetchJobById } = useJobs();
+  const { createJob, updateJob, getJob } = useJobs();
   
   const [formData, setFormData] = useState(initialFormState);
   const [skillInput, setSkillInput] = useState('');
@@ -172,7 +172,7 @@ const JobForm = () => {
     if (isEditing) {
       const loadJob = async () => {
         try {
-          const job = await fetchJobById(id);
+          const job = await getJob(id);
           if (job) {
             setFormData({
               title: job.title || '',
@@ -183,8 +183,8 @@ const JobForm = () => {
               experienceLevel: job.experienceLevel || '1-3',
               noOfPositions: job.noOfPositions || 1,
               noticePeriod: job.noticePeriod || '30-days',
-              salaryMin: job.salaryMin || '',
-              salaryMax: job.salaryMax || '',
+              salaryMin: job.salaryMin ? String(job.salaryMin) : '',
+              salaryMax: job.salaryMax ? String(job.salaryMax) : '',
               description: job.description || '',
               requirements: job.requirements || '',
               benefits: job.benefits || '',
@@ -201,7 +201,7 @@ const JobForm = () => {
       };
       loadJob();
     }
-  }, [id, isEditing, fetchJobById, navigate]);
+  }, [id, isEditing, getJob, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

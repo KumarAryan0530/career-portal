@@ -1,7 +1,12 @@
 // Custom hook for job application operations
 import { useState, useCallback } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { scoreResume } from '../utils/resumeScorer';
+
+// Set up PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 // Transform snake_case to camelCase for application objects
 const transformApplication = (app) => ({
@@ -21,6 +26,147 @@ const transformApplication = (app) => ({
   appliedAt: app.applied_at,
   updatedAt: app.updated_at
 });
+
+// Helper function to extract text from PDF
+const extractTextFromPDF = async (data) => {
+  try {
+    console.log('Starting PDF extraction...');
+    const arrayBuffer = await data.arrayBuffer();
+    console.log('ArrayBuffer created, size:', arrayBuffer.byteLength);
+    
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    console.log('PDF loaded, pages:', pdf.numPages);
+    
+    let fullText = '';
+    
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map(item => item.str).join(' ');
+      fullText += pageText + '\n';
+      console.log(`Page ${i} extracted, text length: ${pageText.length}`);
+    }
+    
+    console.log('Total extracted text length:', fullText.length);
+    console.log('First 100 chars:', fullText.substring(0, 100));
+    return fullText;
+  } catch (error) {
+    console.error('PDF extraction failed:', error);
+    return '';
+  }
+};
+
+// Helper function to fetch resume text from Supabase URL
+const fetchResumeText = async (resumeUrl) => {
+  if (!resumeUrl) {
+    console.log('No resume URL provided');
+    return '';
+  }
+  
+  try {
+    console.log('Fetching resume from:', resumeUrl);
+    
+    // Extract the file path from the public URL
+    // URL format: https://...supabase.co/storage/v1/object/public/resumes/{path}
+    const urlParts = resumeUrl.split('/resumes/');
+    if (urlParts.length < 2) {
+      console.warn('Invalid resume URL format');
+      return '';
+    }
+    
+    const filePath = urlParts[1];
+    console.log('Resume file path:', filePath);
+    
+    // Download the file from Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('resumes')
+      .download(filePath);
+    
+    if (error || !data) {
+      console.warn('Could not fetch resume from storage:', error);
+      return `Resume: ${filePath}`;
+    }
+    
+    console.log('File downloaded, size:', data.size, 'type:', data.type);
+    
+    let text = '';
+    
+    // Check if it's a PDF
+    if (filePath.toLowerCase().endsWith('.pdf') || data.type === 'application/pdf') {
+      console.log('Processing as PDF file');
+      text = await extractTextFromPDF(data);
+    } else {
+      // Try to extract as plain text
+      console.log('Processing as text file');
+      try {
+        text = await data.text();
+      } catch (textError) {
+        console.warn('Could not extract text from file', textError);
+        text = `Resume file: ${filePath}`;
+      }
+    }
+    
+    console.log('Final extracted text length:', text.length);
+    
+    // If text is empty or very short, use filename as fallback
+    if (!text || text.trim().length < 10) {
+      console.warn('Text extraction resulted in empty/very short content, using fallback');
+      text = `Candidate Resume: ${filePath}\n\n[Resume uploaded successfully. Please ensure file contains readable text.]`;
+    }
+    
+    return text;
+  } catch (err) {
+    console.warn('Error fetching resume text:', err);
+    return '';
+  }
+};
+
+// Helper function to score resume and save to database
+const scoreAndSaveApplication = async (applicationId, resumeText, jobDescription) => {
+  if (!resumeText) return null;
+  
+  try {
+    // Score the resume
+    const scoreData = scoreResume(resumeText, jobDescription || 'Job Position');
+    
+    // Try to save to database (optional - if table exists)
+    try {
+      const { error: dbError } = await supabase
+        .from('application_scores')
+        .upsert({
+          application_id: applicationId,
+          overall_score: scoreData.overallScore,
+          technical_score: scoreData.scores.technical,
+          experience_score: scoreData.scores.experience,
+          education_score: scoreData.scores.education,
+          completeness_score: scoreData.scores.completeness,
+          relevance_score: scoreData.scores.relevance,
+          ranking: scoreData.ranking,
+          confidence: scoreData.confidence,
+          matched_skills: scoreData.breakdown.matchedSkills,
+          missing_skills: scoreData.breakdown.missingSkills,
+          experience_diff: scoreData.breakdown.experienceDiff,
+          education_match: scoreData.breakdown.educationMatch,
+          keyword_matches: scoreData.breakdown.keywordMatches,
+          metadata: scoreData.metadata,
+          scored_at: new Date().toISOString()
+        }, {
+          onConflict: 'application_id'
+        });
+      
+      if (dbError) {
+        console.log('Database score save skipped (table may not exist)');
+      }
+    } catch (dbErr) {
+      console.log('Database not available - ATS score calculated but not persisted');
+    }
+    
+    return scoreData;
+  } catch (err) {
+    console.error('Error scoring application:', err);
+    return null;
+  }
+};
 
 export const useApplications = () => {
   const [applications, setApplications] = useState([]);
@@ -75,6 +221,29 @@ export const useApplications = () => {
         .single();
 
       if (insertError) throw insertError;
+
+      // Automatically score the resume using ATS AI model
+      // This happens in the background - don't block the application submission
+      (async () => {
+        try {
+          console.log('Starting automatic ATS scoring for application:', insertedApp.id);
+          
+          // Fetch resume text from Supabase Storage
+          const resumeText = await fetchResumeText(applicationData.resumeUrl);
+          
+          if (resumeText) {
+            // Score the resume
+            const jobDesc = jobData.description || jobData.title || '';
+            await scoreAndSaveApplication(insertedApp.id, resumeText, jobDesc);
+            console.log('ATS scoring completed for application:', insertedApp.id);
+          } else {
+            console.log('Resume text could not be fetched - ATS scoring skipped');
+          }
+        } catch (scoringErr) {
+          console.error('Error during automatic ATS scoring:', scoringErr);
+          // Don't throw - application is already created
+        }
+      })();
 
       // Update job applicant count
       const { error: updateError } = await supabase

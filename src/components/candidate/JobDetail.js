@@ -185,7 +185,10 @@ const JobDetail = () => {
   useEffect(() => {
     const loadJob = async () => {
       try {
+        console.log('📄 JobDetail: Loading job with ID:', jobId);
         const jobData = await getJob(jobId);
+        console.log('📄 JobDetail: Received job data:', jobData);
+        
         if (jobData) {
           setJob(jobData);
           
@@ -193,12 +196,19 @@ const JobDetail = () => {
           const existingApp = await checkExistingApplication(jobId);
           setHasApplied(!!existingApp);
         } else {
+          console.warn('⚠️ Job data is null/undefined for ID:', jobId);
           toast.error('Job not found');
           navigate('/candidate/jobs');
         }
       } catch (error) {
-        console.error('Error loading job:', error);
-        toast.error('Failed to load job details');
+        console.error('❌ Error loading job:', error);
+        console.error('📋 Error details:', {
+          message: error.message,
+          code: error.code,
+          status: error.status,
+          details: error.details
+        });
+        toast.error('Failed to load job details: ' + (error.message || 'Unknown error'));
       } finally {
         setLoading(false);
       }

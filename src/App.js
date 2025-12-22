@@ -27,6 +27,7 @@ import {
   RecruiterDashboard,
   JobManagement,
   JobForm,
+  JobDetail as RecruiterJobDetail,
   ApplicantsView,
   RecruiterProfile
 } from './components/recruiter';
@@ -201,7 +202,7 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['recruiter']}>
                 <Layout>
-                  <JobForm />
+                  <RecruiterJobDetail />
                 </Layout>
               </ProtectedRoute>
             }

@@ -1,5 +1,5 @@
 // Header/Navbar Component
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../shared/Button';
@@ -130,125 +130,14 @@ const headerStyles = {
     textAlign: 'left',
     fontSize: '0.95rem'
   },
-  // Mobile Menu Button
   mobileMenuBtn: {
     display: 'none',
     background: 'none',
     border: 'none',
     color: '#fff',
     padding: '0.5rem',
-    cursor: 'pointer',
-    borderRadius: '8px',
-    transition: 'background 0.2s'
-  },
-  // Mobile Nav Overlay
-  mobileOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 998,
-    transition: 'opacity 0.3s ease'
-  },
-  // Mobile Nav Drawer
-  mobileNav: {
-    position: 'fixed',
-    top: 0,
-    right: 0,
-    width: '280px',
-    maxWidth: '85vw',
-    height: '100%',
-    background: '#fff',
-    zIndex: 999,
-    transition: 'transform 0.3s ease',
-    overflowY: 'auto',
-    boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.15)'
-  },
-  mobileNavHeader: {
-    padding: '1.25rem',
-    background: 'linear-gradient(135deg, #C41E3A 0%, #A01830 100%)',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  mobileNavClose: {
-    background: 'rgba(255,255,255,0.2)',
-    border: 'none',
-    color: '#fff',
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
     cursor: 'pointer'
-  },
-  mobileNavUser: {
-    padding: '1.5rem',
-    borderBottom: '1px solid #E0DADA',
-    background: '#FFF5F5'
-  },
-  mobileNavUserInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1rem'
-  },
-  mobileNavAvatar: {
-    width: '50px',
-    height: '50px',
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #C41E3A 0%, #A01830 100%)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: '1.25rem'
-  },
-  mobileNavLinks: {
-    padding: '1rem 0'
-  },
-  mobileNavLink: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    padding: '1rem 1.5rem',
-    color: '#2D2D2D',
-    textDecoration: 'none',
-    fontSize: '1rem',
-    fontWeight: '500',
-    transition: 'background 0.2s',
-    borderLeft: '3px solid transparent'
-  },
-  mobileNavLinkActive: {
-    background: '#FFF5F5',
-    color: '#C41E3A',
-    borderLeftColor: '#C41E3A'
-  },
-  mobileNavFooter: {
-    padding: '1rem 1.5rem',
-    borderTop: '1px solid #E0DADA',
-    marginTop: 'auto'
   }
-};
-
-// Media query hook
-const useMediaQuery = (query) => {
-  const [matches, setMatches] = useState(false);
-  
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
-    const listener = () => setMatches(media.matches);
-    media.addEventListener('change', listener);
-    return () => media.removeEventListener('change', listener);
-  }, [matches, query]);
-  
-  return matches;
 };
 
 const Header = () => {
@@ -256,25 +145,6 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showDropdown, setShowDropdown] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isMobile = useMediaQuery('(max-width: 768px)');
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location.pathname]);
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [mobileMenuOpen]);
 
   const handleLogout = async () => {
     try {
@@ -311,263 +181,99 @@ const Header = () => {
 
   return (
     <header style={headerStyles.header}>
-      <div style={{
-        ...headerStyles.container,
-        padding: isMobile ? '0 1rem' : '0 1.5rem',
-        height: isMobile ? '60px' : '70px'
-      }}>
+      <div style={headerStyles.container}>
         <Link to={logoDestination} style={headerStyles.logo}>
-          <div style={{
-            ...headerStyles.logoIcon,
-            width: isMobile ? '36px' : '40px',
-            height: isMobile ? '36px' : '40px'
-          }}>
-            <svg width={isMobile ? "20" : "24"} height={isMobile ? "20" : "24"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div style={headerStyles.logoIcon}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M20 7h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM10 4h4v3h-4V4z"/>
             </svg>
           </div>
           <div style={headerStyles.logoContainer}>
-            <span style={{
-              ...headerStyles.logoText,
-              fontSize: isMobile ? '1.25rem' : '1.5rem'
-            }}>CareerHub</span>
+            <span style={headerStyles.logoText}>CareerHub</span>
             <span style={headerStyles.brandBy}>By Kumar Aryan</span>
           </div>
         </Link>
 
         {currentUser ? (
-          <>
-            {/* Desktop Navigation */}
-            {!isMobile && (
-              <nav style={headerStyles.nav}>
-                <ul style={headerStyles.navLinks}>
-                  {navLinks.map((link) => (
-                    <li key={link.path}>
-                      <Link
-                        to={link.path}
-                        style={{
-                          ...headerStyles.navLink,
-                          ...(location.pathname === link.path ? headerStyles.navLinkActive : {})
-                        }}
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-
-                <div style={{ position: 'relative' }}>
-                  <div
-                    style={headerStyles.avatar}
-                    onClick={() => setShowDropdown(!showDropdown)}
+          <nav style={headerStyles.nav}>
+            <ul style={headerStyles.navLinks}>
+              {navLinks.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    style={{
+                      ...headerStyles.navLink,
+                      ...(location.pathname === link.path ? headerStyles.navLinkActive : {})
+                    }}
                   >
-                    {getInitials(userProfile?.fullName || currentUser.displayName)}
-                  </div>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
 
-                  {showDropdown && (
-                    <div style={headerStyles.dropdown}>
-                      <div style={headerStyles.dropdownHeader}>
-                        <div style={{ fontWeight: '600', color: '#2D2D2D' }}>
-                          {userProfile?.fullName || currentUser.displayName}
-                        </div>
-                        <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.25rem' }}>
-                          {currentUser.email}
-                        </div>
-                        <div style={{ 
-                          fontSize: '0.75rem', 
-                          color: '#C41E3A', 
-                          fontWeight: '600',
-                          textTransform: 'uppercase',
-                          marginTop: '0.5rem'
-                        }}>
-                          {userRole}
-                        </div>
-                      </div>
-                      
-                      <Link
-                        to={userRole === 'recruiter' ? '/recruiter/profile' : '/candidate/profile'}
-                        style={headerStyles.dropdownItem}
-                        onClick={() => setShowDropdown(false)}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        Profile Settings
-                      </Link>
-                      
-                      <button
-                        style={{ ...headerStyles.dropdownItem, color: '#D32F2F' }}
-                        onClick={handleLogout}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                          <polyline points="16 17 21 12 16 7"></polyline>
-                          <line x1="21" y1="12" x2="9" y2="12"></line>
-                        </svg>
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </nav>
-            )}
-
-            {/* Mobile Menu Button */}
-            {isMobile && (
-              <button
-                style={{
-                  ...headerStyles.mobileMenuBtn,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                onClick={() => setMobileMenuOpen(true)}
-                aria-label="Open menu"
+            <div style={{ position: 'relative' }}>
+              <div
+                style={headerStyles.avatar}
+                onClick={() => setShowDropdown(!showDropdown)}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-              </button>
-            )}
+                {getInitials(userProfile?.fullName || currentUser.displayName)}
+              </div>
 
-            {/* Mobile Navigation Drawer */}
-            {isMobile && mobileMenuOpen && (
-              <>
-                <div 
-                  style={headerStyles.mobileOverlay}
-                  onClick={() => setMobileMenuOpen(false)}
-                />
-                <div style={headerStyles.mobileNav}>
-                  <div style={headerStyles.mobileNavHeader}>
-                    <Link to={logoDestination} style={{ ...headerStyles.logo, gap: '0.5rem' }}>
-                      <div style={{ ...headerStyles.logoIcon, width: '32px', height: '32px' }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M20 7h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM10 4h4v3h-4V4z"/>
-                        </svg>
-                      </div>
-                      <span style={{ ...headerStyles.logoText, fontSize: '1.1rem' }}>CareerHub</span>
-                    </Link>
-                    <button
-                      style={headerStyles.mobileNavClose}
-                      onClick={() => setMobileMenuOpen(false)}
-                      aria-label="Close menu"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  <div style={headerStyles.mobileNavUser}>
-                    <div style={headerStyles.mobileNavUserInfo}>
-                      <div style={headerStyles.mobileNavAvatar}>
-                        {getInitials(userProfile?.fullName || currentUser.displayName)}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: '600', color: '#2D2D2D' }}>
-                          {userProfile?.fullName || currentUser.displayName}
-                        </div>
-                        <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.25rem' }}>
-                          {currentUser.email}
-                        </div>
-                        <div style={{ 
-                          fontSize: '0.7rem', 
-                          color: '#C41E3A', 
-                          fontWeight: '600',
-                          textTransform: 'uppercase',
-                          marginTop: '0.25rem'
-                        }}>
-                          {userRole}
-                        </div>
-                      </div>
+              {showDropdown && (
+                <div style={headerStyles.dropdown}>
+                  <div style={headerStyles.dropdownHeader}>
+                    <div style={{ fontWeight: '600', color: '#2D2D2D' }}>
+                      {userProfile?.fullName || currentUser.displayName}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.25rem' }}>
+                      {currentUser.email}
+                    </div>
+                    <div style={{ 
+                      fontSize: '0.75rem', 
+                      color: '#C41E3A', 
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      marginTop: '0.5rem'
+                    }}>
+                      {userRole}
                     </div>
                   </div>
                   
-                  <nav style={headerStyles.mobileNavLinks}>
-                    {navLinks.map((link) => (
-                      <Link
-                        key={link.path}
-                        to={link.path}
-                        style={{
-                          ...headerStyles.mobileNavLink,
-                          ...(location.pathname === link.path ? headerStyles.mobileNavLinkActive : {})
-                        }}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
-                    <Link
-                      to={userRole === 'recruiter' ? '/recruiter/profile' : '/candidate/profile'}
-                      style={{
-                        ...headerStyles.mobileNavLink,
-                        ...(location.pathname.includes('/profile') ? headerStyles.mobileNavLinkActive : {})
-                      }}
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                      Profile Settings
-                    </Link>
-                  </nav>
+                  <Link
+                    to={userRole === 'recruiter' ? '/recruiter/profile' : '/candidate/profile'}
+                    style={headerStyles.dropdownItem}
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Profile Settings
+                  </Link>
                   
-                  <div style={headerStyles.mobileNavFooter}>
-                    <button
-                      style={{
-                        width: '100%',
-                        padding: '0.875rem 1rem',
-                        background: '#FFF5F5',
-                        border: '1px solid #FFCDD2',
-                        borderRadius: '10px',
-                        color: '#D32F2F',
-                        fontWeight: '600',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        cursor: 'pointer',
-                        fontSize: '0.95rem'
-                      }}
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        handleLogout();
-                      }}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                      </svg>
-                      Sign Out
-                    </button>
-                  </div>
+                  <button
+                    style={{ ...headerStyles.dropdownItem, color: '#D32F2F' }}
+                    onClick={handleLogout}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                      <polyline points="16 17 21 12 16 7"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                  </button>
                 </div>
-              </>
-            )}
-          </>
+              )}
+            </div>
+          </nav>
         ) : (
-          <div style={{
-            ...headerStyles.userMenu,
-            gap: isMobile ? '0.5rem' : '1rem'
-          }}>
+          <div style={headerStyles.userMenu}>
             <Link to="/login">
-              <Button variant="ghost" style={{ 
-                color: '#fff',
-                padding: isMobile ? '0.5rem 0.75rem' : undefined,
-                fontSize: isMobile ? '0.875rem' : undefined
-              }}>Login</Button>
+              <Button variant="ghost" style={{ color: '#fff' }}>Login</Button>
             </Link>
             <Link to="/signup">
-              <Button variant="secondary" style={{
-                padding: isMobile ? '0.5rem 1rem' : undefined,
-                fontSize: isMobile ? '0.875rem' : undefined
-              }}>Get Started</Button>
+              <Button variant="secondary">Get Started</Button>
             </Link>
           </div>
         )}

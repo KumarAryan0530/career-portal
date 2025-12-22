@@ -214,16 +214,25 @@ export const useJobs = () => {
   // Get single job by ID
   const getJob = async (jobId) => {
     try {
+      console.log('🔍 Fetching job with ID:', jobId);
       const { data, error: fetchError } = await supabase
         .from('jobs')
         .select('*')
         .eq('id', jobId)
         .single();
 
-      if (fetchError) throw fetchError;
+      console.log('📊 Job fetch response - Data:', data, 'Error:', fetchError);
 
-      return data ? transformJob(data) : null;
+      if (fetchError) {
+        console.error('❌ Job fetch error:', fetchError.message);
+        throw fetchError;
+      }
+
+      const transformedJob = data ? transformJob(data) : null;
+      console.log('✅ Job successfully transformed:', transformedJob);
+      return transformedJob;
     } catch (err) {
+      console.error('❌ Error in getJob:', err.message || err);
       throw err;
     }
   };

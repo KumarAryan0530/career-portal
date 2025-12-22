@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApplications } from '../../hooks/useApplications';
 import { useJobs } from '../../hooks/useJobs';
-import { Button, Input, Select, Status, Spinner, Modal, EmptyState, Badge } from '../shared';
+import { useResumeScoring } from '../../hooks/useResumeScoring';
+import { Button, Input, Select, Status, Spinner, Modal, EmptyState, Badge, ScoreDisplay, ScoreDetailedView, ScoreInsights } from '../shared';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -190,38 +191,87 @@ const ApplicantsView = () => {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { applications, fetchRecruiterApplications, updateApplicationStatus, loading } = useApplications();
-  const { fetchJobById } = useJobs();
+  const { getJob } = useJobs();
+  const { scoreApplication } = useResumeScoring();
   
+  // eslint-disable-next-line no-unused-vars
   const [job, setJob] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [scoreFilter, setScoreFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('appliedDate');
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(null);
+  const [scores, setScores] = useState({});
 
   useEffect(() => {
     fetchRecruiterApplications();
-    if (jobId) {
-      fetchJobById(jobId).then(setJob);
-    }
-  }, [fetchRecruiterApplications, jobId, fetchJobById]);
+  }, [fetchRecruiterApplications]);
 
-  // Filter applications
-  const filteredApplications = applications.filter(app => {
-    // If jobId is provided, filter by job
-    if (jobId && app.jobId !== jobId) return false;
-    
-    // Search filter
-    const matchesSearch = 
-      app.candidateName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.candidateEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Status filter
-    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  // Score applications when loaded (temporarily disabled for debugging)
+  useEffect(() => {
+    if (!applications.length) return;
+
+    const appsToScore = applications.filter(app => 
+      !jobId || app.jobId === jobId
+    );
+
+    // Score applications in parallel (non-blocking)
+    setTimeout(() => {
+      appsToScore.forEach((app) => {
+        if (!scores[app.id]) {
+          // Score in background without blocking UI
+          scoreApplication(
+            app.id,
+            `${app.candidateName} ${app.jobTitle || ''}`,
+            (job && (job.description || job.title)) || `${app.jobTitle || 'Job Position'}`
+          ).then(scoreResult => {
+            if (scoreResult) {
+              setScores(prev => ({ ...prev, [app.id]: scoreResult }));
+            }
+          }).catch(err => {
+            console.error('Error scoring application:', err);
+          });
+        }
+      });
+    }, 500); // Delay scoring slightly to ensure UI renders first
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applications, jobId, scoreApplication]);
+
+  // Filter and sort applications
+  const filteredApplications = applications
+    .filter(app => {
+      // If jobId is provided, filter by job
+      if (jobId && app.jobId !== jobId) return false;
+      
+      // Search filter
+      const matchesSearch = 
+        app.candidateName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.candidateEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+      
+      // Score filter
+      const appScore = scores[app.id]?.overallScore || 0;
+      let matchesScore = true;
+      if (scoreFilter === 'excellent') matchesScore = appScore >= 85;
+      else if (scoreFilter === 'strong') matchesScore = appScore >= 75;
+      else if (scoreFilter === 'good') matchesScore = appScore >= 60;
+      else if (scoreFilter === 'poor') matchesScore = appScore < 60;
+      
+      return matchesSearch && matchesStatus && matchesScore;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'score') {
+        return (scores[b.id]?.overallScore || 0) - (scores[a.id]?.overallScore || 0);
+      } else if (sortBy === 'appliedDate') {
+        return new Date(b.appliedAt) - new Date(a.appliedAt);
+      }
+      return 0;
+    });
 
   // Calculate stats
   const stats = {
@@ -335,10 +385,29 @@ const ApplicantsView = () => {
           onChange={(e) => setStatusFilter(e.target.value)}
           options={statusOptions}
         />
+        <Select
+          value={scoreFilter}
+          onChange={(e) => setScoreFilter(e.target.value)}
+          options={[
+            { value: 'all', label: 'All Scores' },
+            { value: 'excellent', label: 'Excellent (85+)' },
+            { value: 'strong', label: 'Strong (75+)' },
+            { value: 'good', label: 'Good (60+)' },
+            { value: 'poor', label: 'Below 60' }
+          ]}
+        />
+        <Select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          options={[
+            { value: 'appliedDate', label: 'Sort: Latest' },
+            { value: 'score', label: 'Sort: Score' }
+          ]}
+        />
       </div>
 
       {/* Applicants List */}
-      {loading ? (
+      {loading && applications.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '3rem' }}>
           <Spinner size="lg" />
         </div>
@@ -361,116 +430,127 @@ const ApplicantsView = () => {
         />
       ) : (
         <div style={styles.applicantsGrid}>
-          {filteredApplications.map(app => (
-            <div key={app.id} style={styles.applicantCard}>
-              <div style={styles.applicantInfo}>
-                <div style={styles.avatar}>
-                  {getInitials(app.candidateName)}
-                </div>
-                <div style={styles.applicantDetails}>
-                  <div 
-                    style={{ ...styles.applicantName, cursor: 'pointer' }}
-                    onClick={() => openApplicantDetail(app)}
-                  >
-                    {app.candidateName}
+          {filteredApplications.map(app => {
+            const appScore = scores[app.id];
+            return (
+              <div key={app.id} style={{ ...styles.applicantCard, gridTemplateColumns: '1fr auto auto auto', alignItems: 'center', gap: '1.5rem' }}>
+                <div style={styles.applicantInfo}>
+                  <div style={styles.avatar}>
+                    {getInitials(app.candidateName)}
                   </div>
-                  <div style={styles.applicantMeta}>
-                    {app.candidateEmail}
-                  </div>
-                  {!jobId && (
-                    <div style={styles.jobName}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                      </svg>
-                      {app.jobTitle}
-                    </div>
-                  )}
-                  <div style={styles.tags}>
-                    <Status status={app.status} />
-                    <Badge variant="tag">
-                      Applied {format(new Date(app.appliedAt), 'MMM d, yyyy')}
-                    </Badge>
-                  </div>
-                  {app.resumeUrl && (
-                    <a 
-                      href={app.resumeUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      style={styles.resumeLink}
+                  <div style={styles.applicantDetails}>
+                    <div 
+                      style={{ ...styles.applicantName, cursor: 'pointer' }}
+                      onClick={() => openApplicantDetail(app)}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                      </svg>
-                      View Resume
-                    </a>
-                  )}
-                </div>
-              </div>
-              <div style={styles.actions}>
-                <div style={styles.statusActions}>
-                  {app.status === 'pending' && (
-                    <>
-                      <button
-                        style={{ ...styles.iconButton, background: '#E1F5FE' }}
-                        onClick={() => handleStatusChange(app.id, 'reviewing')}
-                        disabled={updatingStatus === app.id}
-                        title="Start Review"
+                      {app.candidateName}
+                    </div>
+                    <div style={styles.applicantMeta}>
+                      {app.candidateEmail}
+                    </div>
+                    {!jobId && (
+                      <div style={styles.jobName}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                        </svg>
+                        {app.jobTitle}
+                      </div>
+                    )}
+                    <div style={styles.tags}>
+                      <Status status={app.status} />
+                      <Badge variant="tag">
+                        Applied {format(new Date(app.appliedAt), 'MMM d, yyyy')}
+                      </Badge>
+                    </div>
+                    {app.resumeUrl && (
+                      <a 
+                        href={app.resumeUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={styles.resumeLink}
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0288D1" strokeWidth="2">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                          <circle cx="12" cy="12" r="3"></circle>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                          <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        View Resume
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Score Display */}
+                {appScore ? (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minWidth: '140px' }}>
+                    <ScoreDisplay score={appScore} size="small" showBreakdown={false} />
+                  </div>
+                ) : null}
+
+                <div style={styles.actions}>
+                  <div style={styles.statusActions}>
+                    {app.status === 'pending' && (
+                      <>
+                        <button
+                          style={{ ...styles.iconButton, background: '#E1F5FE' }}
+                          onClick={() => handleStatusChange(app.id, 'reviewing')}
+                          disabled={updatingStatus === app.id}
+                          title="Start Review"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0288D1" strokeWidth="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                    {(app.status === 'pending' || app.status === 'reviewing') && (
+                      <button
+                        style={{ ...styles.iconButton, background: '#E8F5E9' }}
+                        onClick={() => handleStatusChange(app.id, 'interview')}
+                        disabled={updatingStatus === app.id}
+                        title="Schedule Interview"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" strokeWidth="2">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                          <line x1="16" y1="2" x2="16" y2="6"></line>
+                          <line x1="8" y1="2" x2="8" y2="6"></line>
+                          <line x1="3" y1="10" x2="21" y2="10"></line>
                         </svg>
                       </button>
-                    </>
-                  )}
-                  {(app.status === 'pending' || app.status === 'reviewing') && (
+                    )}
+                    {app.status === 'interview' && (
+                      <button
+                        style={{ ...styles.iconButton, background: '#FFF4E5' }}
+                        onClick={() => handleStatusChange(app.id, 'offered')}
+                        disabled={updatingStatus === app.id}
+                        title="Make Offer"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ED6C02" strokeWidth="2">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                      </button>
+                    )}
                     <button
-                      style={{ ...styles.iconButton, background: '#E8F5E9' }}
-                      onClick={() => handleStatusChange(app.id, 'interview')}
+                      style={{ ...styles.iconButton, background: '#FFEBEE' }}
+                      onClick={() => handleStatusChange(app.id, 'rejected')}
                       disabled={updatingStatus === app.id}
-                      title="Schedule Interview"
+                      title="Reject"
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" strokeWidth="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C41E3A" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
                       </svg>
                     </button>
-                  )}
-                  {app.status === 'interview' && (
-                    <button
-                      style={{ ...styles.iconButton, background: '#FFF4E5' }}
-                      onClick={() => handleStatusChange(app.id, 'offered')}
-                      disabled={updatingStatus === app.id}
-                      title="Make Offer"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ED6C02" strokeWidth="2">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                      </svg>
-                    </button>
-                  )}
-                  <button
-                    style={{ ...styles.iconButton, background: '#FFEBEE' }}
-                    onClick={() => handleStatusChange(app.id, 'rejected')}
-                    disabled={updatingStatus === app.id}
-                    title="Reject"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C41E3A" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => openApplicantDetail(app)}>
+                    View Details
+                  </Button>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => openApplicantDetail(app)}>
-                  View Details
-                </Button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -478,36 +558,68 @@ const ApplicantsView = () => {
       <Modal
         isOpen={detailModalOpen}
         onClose={() => setDetailModalOpen(false)}
-        title="Applicant Details"
+        title="Applicant Profile & ATS Analysis"
         size="lg"
       >
         {selectedApplicant && (
           <div style={styles.modalContent}>
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-              <div style={{ ...styles.avatar, width: '72px', height: '72px', fontSize: '1.5rem' }}>
+            {/* Header Section */}
+            <div style={{ background: '#F8F9FA', padding: '1.5rem', marginBottom: '1.5rem', borderRadius: '12px', display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '1.5rem', alignItems: 'start' }}>
+              <div style={{ ...styles.avatar, width: '72px', height: '72px', fontSize: '1.5rem', flexShrink: 0 }}>
                 {getInitials(selectedApplicant.candidateName)}
               </div>
-              <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.25rem' }}>
+              <div style={{ minWidth: 0 }}>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.25rem', color: '#2D2D2D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {selectedApplicant.candidateName}
                 </h3>
-                <p style={{ color: '#666', marginBottom: '0.5rem' }}>
+                <p style={{ color: '#666', marginBottom: '0.5rem', fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {selectedApplicant.candidateEmail}
                 </p>
-                <Status status={selectedApplicant.status} />
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Status status={selectedApplicant.status} />
+                  <span style={{ fontSize: '0.9rem', color: '#999' }}>
+                    Applied for: <strong>{selectedApplicant.jobTitle}</strong>
+                  </span>
+                </div>
+              </div>
+              {scores[selectedApplicant.id] && (
+                <div style={{ minWidth: '140px', textAlign: 'center', paddingLeft: '1rem', borderLeft: '1px solid #ddd' }}>
+                  <ScoreDisplay score={scores[selectedApplicant.id]} size="small" showBreakdown={false} />
+                </div>
+              )}
+            </div>
+
+            {/* Key Info */}
+            <div style={{ background: '#FFFFFF', padding: '1rem', marginBottom: '1.5rem', borderRadius: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.9rem', borderLeft: '4px solid #C41E3A' }}>
+              <div>
+                <div style={{ color: '#999', marginBottom: '0.25rem', fontSize: '0.85rem' }}>Position Applied</div>
+                <div style={{ fontWeight: '600' }}>{selectedApplicant.jobTitle}</div>
+              </div>
+              <div>
+                <div style={{ color: '#999', marginBottom: '0.25rem', fontSize: '0.85rem' }}>Applied Date</div>
+                <div style={{ fontWeight: '600' }}>{format(new Date(selectedApplicant.appliedAt), 'MMM d, yyyy')}</div>
               </div>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>Applied Position:</strong> {selectedApplicant.jobTitle}
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>Applied Date:</strong> {format(new Date(selectedApplicant.appliedAt), 'MMMM d, yyyy')}
-            </div>
+            {/* Resume Score Detailed View */}
+            {scores[selectedApplicant.id] && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <ScoreDetailedView score={scores[selectedApplicant.id]} />
+              </div>
+            )}
 
+            {/* AI Insights and Recommendations */}
+            {scores[selectedApplicant.id] && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <ScoreInsights score={scores[selectedApplicant.id]} job={job} />
+              </div>
+            )}
+
+            {/* Resume Link */}
             {selectedApplicant.resumeUrl && (
-              <div style={{ marginBottom: '1rem' }}>
-                <strong>Resume:</strong>
+              <div style={{ background: '#E3F2FD', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+                <strong>📄 Resume</strong>
+                <br />
                 <a 
                   href={selectedApplicant.resumeUrl}
                   target="_blank"
