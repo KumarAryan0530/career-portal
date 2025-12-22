@@ -191,7 +191,6 @@ const ApplicantsView = () => {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { applications, fetchRecruiterApplications, updateApplicationStatus, loading } = useApplications();
-  const { getJob } = useJobs();
   const { scoreApplication } = useResumeScoring();
   
   // eslint-disable-next-line no-unused-vars

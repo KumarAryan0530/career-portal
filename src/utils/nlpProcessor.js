@@ -299,7 +299,7 @@ export const fuzzyMatchSkills = (resumeSkills, requiredSkills) => {
  * Extract contact information from resume
  */
 const hasEmailAddress = (text) => {
-  return /[a-z0-9._%+\-]+@[a-z0-9.-]+\.[a-z]{2,}/gi.test(text);
+  return /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi.test(text);
 };
 
 const hasPhoneNumber = (text) => {

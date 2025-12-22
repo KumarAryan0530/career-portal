@@ -118,7 +118,6 @@ const JobDetail = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const loadJob = async () => {
       try {
         setLoading(true);
@@ -137,7 +136,7 @@ const JobDetail = () => {
     };
 
     loadJob();
-  }, [id]);
+  }, [id, getJob]);
 
   if (loading) {
     return <div style={styles.loading}>Loading job details...</div>;
